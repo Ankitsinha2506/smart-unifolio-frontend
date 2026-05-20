@@ -17,7 +17,14 @@ import { COLORS, FONT_SIZE, SPACING, RADIUS } from '../../../constants/theme';
 
 const CARD_W = Dimensions.get('window').width * 0.38;
 
-function RelatedCard({ item, onPress }) {
+function RelatedCard({ item, onPress, onWishlistToggle }) {
+    const handleWishlistPress = (e) => {
+        e.stopPropagation();
+        if (onWishlistToggle) {
+            onWishlistToggle(item.id);
+        }
+    };
+
     return (
         <TouchableOpacity style={styles.card} onPress={() => onPress(item)} activeOpacity={0.85}>
             {/* Image */}
@@ -30,9 +37,9 @@ function RelatedCard({ item, onPress }) {
                     </View>
                 )}
                 {/* Wishlist dot */}
-                <View style={styles.wishDot}>
+                <TouchableOpacity style={styles.wishDot} onPress={handleWishlistPress} activeOpacity={0.7}>
                     <Text style={styles.wishIcon}>{item.wishlist ? '♥' : '♡'}</Text>
-                </View>
+                </TouchableOpacity>
             </View>
 
             {/* Info */}
@@ -49,8 +56,16 @@ function RelatedCard({ item, onPress }) {
     );
 }
 
-function RelatedProducts({ products = [], onProductPress }) {
+function RelatedProducts({ products = [], onProductPress, navigation, onWishlistToggle }) {
     if (!products.length) return null;
+
+    const handleCardPress = (item) => {
+        if (navigation) {
+            navigation.push('ProductDetail', { product: item });
+        } else if (onProductPress) {
+            onProductPress(item);
+        }
+    };
 
     return (
         <View style={styles.section}>
@@ -61,7 +76,12 @@ function RelatedProducts({ products = [], onProductPress }) {
                 contentContainerStyle={styles.scroll}
             >
                 {products.map(item => (
-                    <RelatedCard key={item.id} item={item} onPress={onProductPress} />
+                    <RelatedCard
+                        key={item.id}
+                        item={item}
+                        onPress={handleCardPress}
+                        onWishlistToggle={onWishlistToggle}
+                    />
                 ))}
             </ScrollView>
         </View>
