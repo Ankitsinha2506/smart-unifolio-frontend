@@ -20,11 +20,6 @@ import {
 } from 'react-native';
 import { COLORS, FONT_SIZE, SPACING, RADIUS } from '../../../constants/theme';
 
-// ── BEFORE: used Alert.alert('Install react-native-image-picker...')
-// ── AFTER:  uses launchImageLibrary from react-native-image-picker
-//           Install: npm install react-native-image-picker
-//           iOS:     cd ios && pod install
-//           Android: auto-linked
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const LOGO_POSITIONS = [
@@ -52,8 +47,6 @@ function OptionCard({ isActive, onPress, title, subtitle }) {
 }
 
 // ── Position picker modal ───────────────────────
-// BEFORE: Alert.alert with list → broken on Android (too many buttons crash)
-// AFTER:  Custom Modal with FlatList → works on both platforms
 function PositionPickerModal({ visible, selected, onSelect, onClose }) {
   return (
     <Modal
@@ -91,12 +84,68 @@ function PositionPickerModal({ visible, selected, onSelect, onClose }) {
   );
 }
 
+// ── Position Reference Guide Modal ──────────────
+// UPDATED: Clean modal overlay with industrial design
+function PositionReferenceModal({ visible, onClose }) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      {/* Dark backdrop */}
+      <TouchableOpacity
+        style={styles.referenceBackdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      />
+
+      {/* Centered modal card */}
+      <View style={styles.referenceModalCentered}>
+        <View style={styles.referenceModalContent}>
+          {/* Close button (top right) */}
+          <TouchableOpacity
+            style={styles.referenceCloseIconButton}
+            onPress={onClose}
+          >
+            <Text style={styles.referenceCloseIcon}>✕</Text>
+          </TouchableOpacity>
+
+          {/* Title */}
+          <Text style={styles.referenceModalTitle}>Logo / Design placement guide</Text>
+
+          {/* Placement guide image */}
+          <Image
+            source={require('../../../assets/icons/ic_placement-guide.png')}
+            style={styles.placementGuideImage}
+            resizeMode="contain"
+          />
+
+          {/* Subtitle */}
+          <Text style={styles.referenceModalSubtitle}>
+            Select the position where you want your logo or design to be placed on the jacket
+          </Text>
+
+          {/* Action button */}
+          <TouchableOpacity
+            style={styles.referenceActionButton}
+            onPress={onClose}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.referenceActionButtonText}>Got it</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 // ── Upload + Position row ───────────────────────
 function CustomUploadRow({ logoPosition, setLogoPosition, uploadedLogo, setUploadedLogo }) {
   const [modalVisible, setModalVisible] = useState(false);
+  const [referenceModalVisible, setReferenceModalVisible] = useState(false);
 
-  // BEFORE: Alert.alert('Upload Logo', 'Install react-native-image-picker...')
-  // AFTER:  launchImageLibrary → real file picker
   const handleUpload = () => {
     launchImageLibrary(
       {
@@ -155,7 +204,8 @@ function CustomUploadRow({ logoPosition, setLogoPosition, uploadedLogo, setUploa
           <Text style={styles.chevron}>⌄</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => console.log('Show position reference images')}>
+        {/* Opens the reference guide modal */}
+        <TouchableOpacity onPress={() => setReferenceModalVisible(true)}>
           <Text style={styles.referenceLink}>See the reference position images ›</Text>
         </TouchableOpacity>
       </View>
@@ -166,6 +216,12 @@ function CustomUploadRow({ logoPosition, setLogoPosition, uploadedLogo, setUploa
         selected={logoPosition}
         onSelect={setLogoPosition}
         onClose={() => setModalVisible(false)}
+      />
+
+      {/* Reference guide modal */}
+      <PositionReferenceModal
+        visible={referenceModalVisible}
+        onClose={() => setReferenceModalVisible(false)}
       />
     </View>
   );
@@ -343,6 +399,94 @@ const styles = StyleSheet.create({
     marginTop:       SPACING.xs,
   },
   modalCancelText: { fontSize: FONT_SIZE.md, color: '#EF4444', fontWeight: '600' },
+
+  // ── Reference Guide Modal (Industrial Design) ───
+  referenceBackdrop: {
+    position:        'absolute',
+    top:             0,
+    left:            0,
+    right:           0,
+    bottom:          0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  referenceModalCentered: {
+    flex:            1,
+    justifyContent:  'center',
+    alignItems:      'center',
+    paddingHorizontal: SPACING.lg,
+  },
+  referenceModalContent: {
+    backgroundColor:   COLORS.white,
+    borderRadius:      RADIUS.lg,
+    padding:           SPACING.lg,
+    maxWidth:          '90%',
+    width:             '100%',
+    alignItems:        'center',
+    shadowColor:       '#000',
+    shadowOffset:      { width: 0, height: 8 },
+    shadowOpacity:     0.25,
+    shadowRadius:      12,
+    elevation:         10,
+    borderWidth:       1,
+    borderColor:       'rgba(0, 0, 0, 0.08)',
+  },
+  referenceCloseIconButton: {
+    position:   'absolute',
+    top:        SPACING.md,
+    right:      SPACING.md,
+    width:      36,
+    height:     36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex:     100,
+  },
+  referenceCloseIcon: {
+    fontSize:   FONT_SIZE.lg,
+    color:      COLORS.text.secondary,
+    fontWeight: '600',
+  },
+  referenceModalTitle: {
+    fontSize:    FONT_SIZE.lg,
+    fontWeight:  '700',
+    color:       COLORS.text.primary,
+    marginTop:   SPACING.sm,
+    marginBottom: SPACING.lg,
+    textAlign:   'center',
+  },
+  placementGuideImage: {
+    width:      '100%',
+    height:     280,
+    marginBottom: SPACING.md,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.background,
+  },
+  referenceModalSubtitle: {
+    fontSize:      FONT_SIZE.sm,
+    color:         COLORS.text.secondary,
+    textAlign:     'center',
+    marginBottom:  SPACING.lg,
+    lineHeight:    20,
+  },
+  referenceActionButton: {
+    width:              '100%',
+    paddingVertical:    SPACING.md,
+    backgroundColor:    COLORS.primary,
+    borderRadius:       RADIUS.md,
+    alignItems:         'center',
+    marginTop:          SPACING.md,
+    shadowColor:        COLORS.primary,
+    shadowOffset:       { width: 0, height: 4 },
+    shadowOpacity:      0.2,
+    shadowRadius:       6,
+    elevation:          4,
+  },
+  referenceActionButtonText: {
+    fontSize:   FONT_SIZE.md,
+    fontWeight: '600',
+    color:      COLORS.white,
+  },
 });
 
 export default memo(DeliveryOptions);
